@@ -1,3 +1,11 @@
+var gifs = [
+  { name: "ski", count: 176 },
+  { name: "helicoptor", count: 153 },
+  { name: "jetpack", count: 123 },
+  { name: "horse", count: 105 },
+  { name: "tail", count: 81 }
+];
+
 var kinetophone,
     audio,
     lastGifIdx,
@@ -87,7 +95,7 @@ function createKinetophone(index) {
 
   kinetophone = new Kinetophone([framesChannel, audioChannel], totalDuration, {tickImmediately: true});
 
-  kinetophone.on("start", function(evt) {
+  kinetophone.on("enter", function(evt) {
     if (evt.name === "frames") {
       frameImg.src = evt.data.src;
     } else if (evt.name === "audio") {
@@ -97,7 +105,7 @@ function createKinetophone(index) {
     }
   });
 
-  kinetophone.on("finish", function() {
+  kinetophone.on("end", function() {
     var nextGifIndex = lastGifIdx + 1;
     if (nextGifIndex >= gifs.length) nextGifIndex = 0;
     gifSelect.value = nextGifIndex;
