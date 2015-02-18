@@ -120,7 +120,7 @@ Event handlers for `enter` will fire for every channel's events; event handlers 
 
 **`exit:chname(event)`**
 
-Indicate a channel's event has been exited. For example, if an event has a `start` of `0` and a `duration` or `end` of `1000`, when the Kinetophone playback reaches 1000 milliseconds, an `exit` event will be emitted for that event.
+Indicates a channel's event has been exited. For example, if an event has a `start` of `0` and a `duration` or `end` of `1000`, when the Kinetophone playback reaches 1000 milliseconds, an `exit` event will be emitted for that event.
 
 Event handlers for `exit` will fire for every channel's events; event handlers for `exit:chname`, where `chname` is the name of a channel, will fire only for events from that channel.
 
