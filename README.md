@@ -106,7 +106,7 @@ During playback, a Kinetophone instance will emit events indicating that channel
 
 Indicates a channel's event has been entered. For example, if an event has a `start` of `1000`, when the Kinetophone playback reaches 1000 milliseconds, an `enter` event will be emitted for that event.
 
-Event handlers for `enter` will fire for every channel's event; event handlers for `enter:chname`, where `chname` is the name of a channel, will fire only for events from that channel.
+Event handlers for `enter` will fire for every channel's events; event handlers for `enter:chname`, where `chname` is the name of a channel, will fire only for events from that channel.
 
 * `chname` - the name of a channel, used to scope listeners to specific channels
 * `event` - the channel event entering
@@ -122,7 +122,7 @@ Event handlers for `enter` will fire for every channel's event; event handlers f
 
 Indicate a channel's event has been exited. For example, if an event has a `start` of `0` and a `duration` or `end` of `1000`, when the Kinetophone playback reaches 1000 milliseconds, an `exit` event will be emitted for that event.
 
-Event handlers for `exit` will fire for every channel's event; event handlers for `exit:chname`, where `chname` is the name of a channel, will fire only for events from that channel.
+Event handlers for `exit` will fire for every channel's events; event handlers for `exit:chname`, where `chname` is the name of a channel, will fire only for events from that channel.
 
 * `chname` - the name of a channel, used to scope listeners to specific channels
 * `event` - the channel event exiting
