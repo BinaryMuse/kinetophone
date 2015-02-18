@@ -92,6 +92,10 @@ Also `Kinetophone#removeListener(event, handler)`
 
 From [EventEmitter3](https://github.com/primus/eventemitter3), unsubscribes from events on the Kinetophone. See [the Node.js EventEmitter API](http://nodejs.org/api/events.html) for more details.
 
+**Other EventEmitter Methods**
+
+Since Kinetophone instances inherit from EventEmitter3, all other [EventEmitter methods](http://nodejs.org/api/events.html) are available.
+
 ### Events
 
 During playback, a Kinetophone instance will emit events indicating that channel events (see "Channels" below for more information on events) have entered or exited and to indicate other status changes. Here are the events Kinetophone emits and the arguments passed to the event handlers.
