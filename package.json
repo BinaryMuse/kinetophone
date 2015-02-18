@@ -1,0 +1,20 @@
+{
+  "name": "kinetophone",
+  "version": "0.0.1",
+  "description": "Stitch together time-sequenced events",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack --output-library Kinetophone --output-library-target umd index.js build/kinetophone.js",
+    "build-min": "webpack --output-library Kinetophone --output-library-target umd -p index.js build/kinetophone.min.js"
+  },
+  "author": "BinaryMuse",
+  "license": "MIT",
+  "dependencies": {
+    "eventemitter3": "^0.1.6",
+    "interval-tree": "0.0.4",
+    "timex": "^1.0.3"
+  },
+  "devDependencies": {
+    "webpack": "^1.5.3"
+  }
+}
