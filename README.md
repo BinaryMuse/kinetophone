@@ -1,7 +1,7 @@
 Kinetophone
 ===========
 
-![Kinetophone](images/kinetophone.jpg)
+![Kinetophone](https://raw.githubusercontent.com/BinaryMuse/kinetophone/master/images/kinetophone.jpg)
 
 Kinetophone is a library for stitching together time-sequenced events. It's primary use-case is to turn a series of audio and video files into a faux video.
 
