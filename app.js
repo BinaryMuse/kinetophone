@@ -91,7 +91,6 @@ function createKinetophone(index) {
     if (evt.name === "frames") {
       frameImg.src = evt.data.src;
     } else if (evt.name === "audio") {
-      console.log(evt);
       audio = new Audio();
       audio.src = evt.data.src;
       if (playing) audio.play();
