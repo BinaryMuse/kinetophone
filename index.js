@@ -68,10 +68,12 @@ Kinetophone.prototype._timerCallback = function(time) {
     this._lastTimerCallback = time;
   }
 
-  if (time > totalDuration) {
+  if (time > this._totalDuration) {
     this.pause();
     this._timer.set(0);
     this._lastTimerCallback = null;
+    this._clearAllEvents();
+    this.emit("finish");
   }
 };
 
@@ -108,6 +110,12 @@ Kinetophone.prototype.currentTime = function(newTime) {
 Kinetophone.prototype._resolveEvents = function(lastTime, currentTime) {
   Object.keys(this._channels).forEach(function(chan) {
     this._resolveEventsForChannel(chan, lastTime, currentTime);
+  }.bind(this));
+};
+
+Kinetophone.prototype._clearAllEvents = function() {
+  Object.keys(this._channels).forEach(function(chan) {
+    this._clearAllEventsForChannel(chan);
   }.bind(this));
 };
 
@@ -148,6 +156,18 @@ Kinetophone.prototype._resolveEventsForChannel = function(channel, lastTime, cur
       eventsRef.push(evt);
     }
   }.bind(this));
+};
+
+Kinetophone.prototype._clearAllEventsForChannel = function(channel) {
+  this._activeEventsPerChannel[channel].forEach(function(evt) {
+    var toEmit = { name: name, start: evt.start, data: evt.data.data };
+    if (typeof evt.data.data !== "undefined") toEmit.data = evt.data.data;
+    if (typeof evt.data.end !== "undefined") toEmit.end = evt.data.end;
+    if (typeof evt.data.duration !== "undefined") toEmit.duration = evt.data.duration;
+    this.emit("end", toEmit);
+  }.bind(this));
+
+  this._activeEventsPerChannel[channel] = [];
 };
 
 module.exports = Kinetophone;
