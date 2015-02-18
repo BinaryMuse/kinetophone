@@ -1,4 +1,8 @@
-var gifs = [
+var kinetophone, currentAudio, playing;
+
+var FRAME_TIME = 33;
+
+var imageSets = [
   { name: "ski", count: 176 },
   { name: "helicoptor", count: 153 },
   { name: "jetpack", count: 123 },
@@ -6,23 +10,26 @@ var gifs = [
   { name: "tail", count: 81 }
 ];
 
-var kinetophone, audio, lastGifIdx, playing;
+// Each image set starts when the last one ended.
+imageSets.forEach(function(imageset, index) {
+  if (index === 0) {
+    imageset.start = 0;
+  } else {
+    imageset.start = imageSets[index - 1].start + imageSets[index - 1].count * FRAME_TIME;
+  }
+});
+
+// The total duration of the Kinetophone's playback is the
+// sum of each of the image set's playback.
+var totalDuration = imageSets.reduce(function(acc, imageset) {
+  return acc + imageset.count * FRAME_TIME;
+}, 0);
 
 var frameImg = document.getElementById("frame"),
-    gifSelect = document.getElementById("gifselect"),
     playpause = document.getElementById("playpause"),
     slider = document.getElementById("slider");
 
-gifs.forEach(function(gifset, idx) {
-  var opt = document.createElement("option");
-  opt.value = idx;
-  opt.textContent = gifset.name;
-  gifSelect.appendChild(opt);
-});
-
-gifSelect.addEventListener("change", function() {
-  selectGif(~~gifSelect.value);
-});
+slider.max = totalDuration;
 
 // Playing/Pausing affects both the Kinetophone's internal
 // playhead and the current audio clip.
@@ -30,12 +37,12 @@ playpause.addEventListener("click", function() {
   if (playing) {
     playing = false;
     kinetophone.pause();
-    audio.pause();
+    currentAudio && currentAudio.audio.pause();
     playpause.textContent = "Play";
   } else {
     playing = true;
     kinetophone.play();
-    audio.play();
+    currentAudio && currentAudio.audio.play();
     playpause.textContent = "Pause";
   }
 });
@@ -45,88 +52,139 @@ playpause.addEventListener("click", function() {
 slider.addEventListener("input", function() {
   var time = ~~slider.value;
   kinetophone.currentTime(time);
-  audio.currentTime = time / 1000;
 });
 
-selectGif(0);
+// For the frames channel, we'll build an array of frame events for
+// each image set, then combine them into one big array at the end.
+var framesChannel = {
+  name: "frame",
+  events: imageSets.map(function(imageset) {
+    return range(1, imageset.count).map(function(frame, frameIdx) {
+      var img = "" + frame;
+      while (img.length < 3) img = "0" + img;
+      var src = "media/" + imageset.name + "/ffout" + img + ".jpg";
 
-function selectGif(idx) {
-  lastGifIdx = idx;
+      return {
+        start: imageset.start + frameIdx * FRAME_TIME,
+        duration: FRAME_TIME,
+        data: { src: src }
+      };
+    });
+  }).reduce(function(acc, curr) {
+    return acc.concat(curr);
+  }, [])
+};
 
-  if (kinetophone) {
-    kinetophone.pause();
-    kinetophone.removeAllListeners();
-    kinetophone = null;
+// We have one audio clip per image set; each starts when the
+// image set starts, and lasts for the duration of the image set.
+var audioChannel = {
+  name: "audio",
+  events: imageSets.map(function(imageset, index) {
+    // Rather than returning the source of the audio file to load
+    // when the event starts, we'll create the audio file here so
+    // it's already started loading by the time we want to play it.
+    var audio = new Audio();
+    audio.src = "media/" + imageset.name + "-audio.mp3";
+    return {
+      start: imageset.start,
+      duration: imageset.count * FRAME_TIME,
+      data: {
+        audio: audio
+      }
+    };
+  })
+};
+
+// Two seconds before we show each image, we'll preload it so we
+// don't get gaps in playback.
+var preloadChannel = {
+  name: "preload",
+  events: framesChannel.events.map(function(frame) {
+    var start = frame.start - 2000;
+    if (start < 0) start = 0;
+
+    return {
+      start: start,
+      duration: 2000,
+      data: { src: frame.data.src }
+    };
+  })
+};
+
+var channels = [framesChannel, audioChannel, preloadChannel];
+kinetophone = new Kinetophone(channels, totalDuration, {tickImmediately: true});
+
+// When we get a 'preload' event, we just want to preload the image.
+kinetophone.on("enter:preload", function(image) {
+  preloadImage(image.data.src);
+});
+
+// When we get a 'frame' event, show it in the DOM.
+kinetophone.on("enter:frame", function(frame) {
+  frameImg.src = frame.data.src;
+});
+
+// When we get an 'audio' event, we want to start the audio
+// playing (assuming the Kinetophone is playing). However,
+// it's possible we jumped into the middle of the audio
+// event, so we need to calculate the correct offset.
+kinetophone.on("enter:audio", function(evt) {
+  currentAudio = {
+    start: evt.start,
+    audio: evt.data.audio
   }
 
-  if (audio) {
-    audio.pause();
+  var offset = kinetophone.currentTime() - evt.start;
+  currentAudio.audio.currentTime = offset / 1000;
+  if (playing) currentAudio.audio.play();
+});
+
+// When we *exit* an audio event, we want to pause the currently
+// playing audio (if any) and reset its time to 0 so it's ready
+// to play the next time it enters.
+//
+// Note: this only works as written as we have no overlapping audio
+// events.
+kinetophone.on("exit:audio", function(evt) {
+  if (currentAudio) {
+    currentAudio.audio.pause();
+    currentAudio.audio.currentTime = 0;
   }
+});
 
-  createKinetophone(idx);
-}
+// Loop the Kinetophone!
+kinetophone.on("end", function() {
+  kinetophone.play();
+});
 
-function createKinetophone(index) {
-  var name = gifs[index].name,
-      totalDuration = gifs[index].count * 33;
+// Keep the slider up to date with the current time.
+kinetophone.on("timeupdate", function(time) {
+  slider.value = time;
+});
 
-  var frameRange = range(1, gifs[index].count);
-  var frameSrcs = frameRange.map(function(frame, index) {
-    var img = "" + frame;
-    while (img.length < 3) img = "0" + img;
-    return "media/" + name + "/ffout" + img + ".jpg";
-  });
+// When we jump to an arbitrary time, we need to update
+// the current audio track (if any) to the correct position.
+kinetophone.on("seek", function(time) {
+  if (currentAudio) {
+    currentAudio.audio.pause();
+    var start = currentAudio.start,
+        offset = time - start;
+    currentAudio.audio.currentTime = offset / 1000;
+    if (playing) currentAudio.audio.play();
+  }
+});
 
-  // Preload all frames
-  frameSrcs.forEach(preloadImage);
-
-  var framesChannel = {
-    name: "frame",
-    events: range(1, gifs[index].count).map(function(frame, index) {
-      return { start: index * 33, duration: 33, data: { src: frameSrcs[index] } };
-    })
-  };
-
-  var audioChannel = {
-    name: "audio",
-    events: [
-      { start: 0, end: totalDuration, data: { src: "media/" + name + "-audio.mp3" } }
-    ]
-  };
-
-  kinetophone = new Kinetophone([framesChannel, audioChannel], totalDuration, {tickImmediately: true});
-
-  kinetophone.on("enter:frame", function(frame) {
-    frameImg.src = frame.data.src;
-  });
-
-  kinetophone.on("enter:audio", function(evt) {
-    audio = new Audio();
-    audio.src = evt.data.src;
-    if (playing) audio.play();
-  });
-
-  kinetophone.on("end", function() {
-    var nextGifIndex = lastGifIdx + 1;
-    if (nextGifIndex >= gifs.length) nextGifIndex = 0;
-    selectGif(nextGifIndex);
-    gifSelect.value = nextGifIndex;
-  });
-
-  kinetophone.on("timeupdate", function(time) {
-    slider.value = time;
-  });
-
-  slider.max = totalDuration;
-
-  if (playing) setTimeout(function() {
-    kinetophone.play();
-  });
-}
-
+var preloads = {};
 function preloadImage(src) {
-  var img = new Image();
-  img.src = src;
+  // Only preload each image once.
+  if (preloads[src]) return;
+
+  setTimeout(function() {
+    var img = new Image();
+    img.src = src;
+  });
+
+  preloads[src] = true;
 }
 
 function range(startInclusive, endInclusive) {
