@@ -6,10 +6,7 @@ var gifs = [
   { name: "tail", count: 81 }
 ];
 
-var kinetophone,
-    audio,
-    lastGifIdx,
-    playing = false;
+var kinetophone, audio, lastGifIdx, playing;
 
 var frameImg = document.getElementById("frame"),
     gifSelect = document.getElementById("gifselect"),
@@ -24,9 +21,11 @@ gifs.forEach(function(gifset, idx) {
 });
 
 gifSelect.addEventListener("change", function() {
-  selectGif(gifSelect.value);
+  selectGif(~~gifSelect.value);
 });
 
+// Playing/Pausing affects both the Kinetophone's internal
+// playhead and the current audio clip.
 playpause.addEventListener("click", function() {
   if (playing) {
     playing = false;
@@ -41,6 +40,8 @@ playpause.addEventListener("click", function() {
   }
 });
 
+// When the slider's value changes, scrub to
+// that position in the Kinetophone.
 slider.addEventListener("input", function() {
   var time = ~~slider.value;
   kinetophone.currentTime(time);
@@ -66,23 +67,23 @@ function selectGif(idx) {
 }
 
 function createKinetophone(index) {
-  var name = gifs[index].name;
-  var totalDuration = gifs[index].count * 33;
+  var name = gifs[index].name,
+      totalDuration = gifs[index].count * 33;
+
+  var frameRange = range(1, gifs[index].count);
+  var frameSrcs = frameRange.map(function(frame, index) {
+    var img = "" + frame;
+    while (img.length < 3) img = "0" + img;
+    return "media/" + name + "/ffout" + img + ".jpg";
+  });
+
+  // Preload all frames
+  frameSrcs.forEach(preloadImage);
 
   var framesChannel = {
-    name: "frames",
+    name: "frame",
     events: range(1, gifs[index].count).map(function(frame, index) {
-      var img = "" + frame;
-      while (img.length < 3) img = "0" + img;
-      var src = "media/" + name + "/ffout" + img + ".jpg";
-
-      preloadImage(src);
-
-      return {
-        start: index * 33,
-        duration: 33,
-        data: { src: src }
-      };
+      return { start: index * 33, duration: 33, data: { src: frameSrcs[index] } };
     })
   };
 
@@ -95,21 +96,21 @@ function createKinetophone(index) {
 
   kinetophone = new Kinetophone([framesChannel, audioChannel], totalDuration, {tickImmediately: true});
 
-  kinetophone.on("enter", function(evt) {
-    if (evt.name === "frames") {
-      frameImg.src = evt.data.src;
-    } else if (evt.name === "audio") {
-      audio = new Audio();
-      audio.src = evt.data.src;
-      if (playing) audio.play();
-    }
+  kinetophone.on("enter:frame", function(frame) {
+    frameImg.src = frame.data.src;
+  });
+
+  kinetophone.on("enter:audio", function(evt) {
+    audio = new Audio();
+    audio.src = evt.data.src;
+    if (playing) audio.play();
   });
 
   kinetophone.on("end", function() {
     var nextGifIndex = lastGifIdx + 1;
     if (nextGifIndex >= gifs.length) nextGifIndex = 0;
-    gifSelect.value = nextGifIndex;
     selectGif(nextGifIndex);
+    gifSelect.value = nextGifIndex;
   });
 
   kinetophone.on("timeupdate", function(time) {
