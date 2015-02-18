@@ -18,6 +18,41 @@ You can then require it as normal:
 
 Kinetophone also works with browser module bundlers like Browserify and webpack.
 
+Example
+-------
+
+Here's a Kinetophone app that will display a series of images, one per second.
+
+```html
+<image id="display">
+```
+
+```javascript
+var numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+var numberChannel = {
+  name: "numbers",
+  events: numbers.map(function(number, index) {
+    return {
+      start: 1000 * index,
+      duration: 1000,
+      data: {
+        src: "/media/image" + number + ".png"
+      }
+    };
+  })
+};
+
+var kinetophone = new Kinetophone([numberChannel], 10000),
+    image = document.getElementById("display");
+
+kinetophone.on("start", function(evt) {
+  image.src = evt.data.src;
+});
+
+kinetophone.start();
+```
+
 Usage
 -----
 
@@ -72,6 +107,8 @@ Indicates a channel's event has been entered. For example, if an event has a `st
 
 **`end(event)`**
 
+Indicate a channel's event has been exited. For example, if an event has a `start` of `0` and a `duration` or `end` of `1000`, when the Kinetophone playback reaches 1000 milliseconds, an `end` event will be emitted for that event.
+
 * `event` - the event being started.
   * `event.name` - the name of the channel the event belongs to
   * `event.start` - the start time of the event
@@ -98,8 +135,6 @@ Indicates the Kinetophone's playhead has moved. Also emitted after calling `curr
 Indicates the Kinetophone's playhead was seeked to a specific time using `currentTime(ms)`.
 
 * `time` - the time that was seeked to
-
-Indicate a channel's event has been exited. For example, if an event has a `start` of `0` and a `duration` or `end` of `1000`, when the Kinetophone playback reaches 1000 milliseconds, an `end` event will be emitted for that event.
 
 ### Channels
 
