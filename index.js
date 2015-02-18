@@ -153,6 +153,7 @@ Kinetophone.prototype._resolveEventsForChannel = function(channel, lastTime, cur
       if (typeof evt.data.end !== "undefined") toEmit.end = evt.data.end;
       if (typeof evt.data.duration !== "undefined") toEmit.duration = evt.data.duration;
       this.emit("enter", toEmit);
+      this.emit("enter:" + name, toEmit);
       eventsRef.push(evt);
     }
   }.bind(this));
@@ -165,6 +166,7 @@ Kinetophone.prototype._clearAllEventsForChannel = function(channel) {
     if (typeof evt.data.end !== "undefined") toEmit.end = evt.data.end;
     if (typeof evt.data.duration !== "undefined") toEmit.duration = evt.data.duration;
     this.emit("end", toEmit);
+    this.emit("end:" + name, toEmit);
   }.bind(this));
 
   this._activeEventsPerChannel[channel] = [];
