@@ -46,11 +46,11 @@ var numberChannel = {
 var kinetophone = new Kinetophone([numberChannel], 10000),
     image = document.getElementById("display");
 
-kinetophone.on("start", function(evt) {
+kinetophone.on("enter", function(evt) {
   image.src = evt.data.src;
 });
 
-kinetophone.start();
+kinetophone.play();
 ```
 
 For more complete examples, check out [the demos on the Kinetophone home page](http://binarymuse.github.io/kinetophone/) and the [associated source code](https://github.com/BinaryMuse/kinetophone/tree/gh-pages).
@@ -100,22 +100,22 @@ Since Kinetophone instances inherit from EventEmitter3, all other [EventEmitter 
 
 During playback, a Kinetophone instance will emit events indicating that channel events (see "Channels" below for more information on events) have entered or exited and to indicate other status changes. Here are the events Kinetophone emits and the arguments passed to the event handlers.
 
-**`start(event)`**
+**`enter(event)`**
 
-Indicates a channel's event has been entered. For example, if an event has a `start` of `1000`, when the Kinetophone playback reaches 1000 milliseconds, a `start` event will be emitted for that event.
+Indicates a channel's event has been entered. For example, if an event has a `start` of `1000`, when the Kinetophone playback reaches 1000 milliseconds, an `enter` event will be emitted for that event.
 
-* `event` - the event being started.
+* `event` - the channel event entering
   * `event.name` - the name of the channel the event belongs to
   * `event.start` - the start time of the event
   * `event.end` - the end time of the event if provided
   * `event.duration` - the duration of the event if provided
   * `event.data` - the data for the event if provided
 
-**`end(event)`**
+**`exit(event)`**
 
-Indicate a channel's event has been exited. For example, if an event has a `start` of `0` and a `duration` or `end` of `1000`, when the Kinetophone playback reaches 1000 milliseconds, an `end` event will be emitted for that event.
+Indicate a channel's event has been exited. For example, if an event has a `start` of `0` and a `duration` or `end` of `1000`, when the Kinetophone playback reaches 1000 milliseconds, an `exit` event will be emitted for that event.
 
-* `event` - the event being started.
+* `event` - the channel event exiting
   * `event.name` - the name of the channel the event belongs to
   * `event.start` - the start time of the event
   * `event.end` - the end time of the event if provided
@@ -142,9 +142,9 @@ Indicates the Kinetophone's playhead was seeked to a specific time using `curren
 
 * `time` - the time that was seeked to
 
-**`finish`**
+**`end`**
 
-Indicates the Kinetophone has stopped because it reached its maximum duration.
+Indicates the Kinetophone has stopped because it reached the end of its total duration.
 
 ### Channels
 

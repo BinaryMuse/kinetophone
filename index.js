@@ -73,7 +73,7 @@ Kinetophone.prototype._timerCallback = function(time) {
     this._timer.set(0);
     this._lastTimerCallback = null;
     this._clearAllEvents();
-    this.emit("finish");
+    this.emit("end");
   }
 };
 
@@ -135,7 +135,7 @@ Kinetophone.prototype._resolveEventsForChannel = function(channel, lastTime, cur
       if (typeof evt.data.data !== "undefined") toEmit.data = evt.data.data;
       if (typeof evt.data.end !== "undefined") toEmit.end = evt.data.end;
       if (typeof evt.data.duration !== "undefined") toEmit.duration = evt.data.duration;
-      this.emit("end", toEmit);
+      this.emit("exit", toEmit);
       // High to low so indexes don't change when we remove them later
       eventsToRemove.unshift(i);
     }
@@ -152,7 +152,7 @@ Kinetophone.prototype._resolveEventsForChannel = function(channel, lastTime, cur
       if (typeof evt.data.data !== "undefined") toEmit.data = evt.data.data;
       if (typeof evt.data.end !== "undefined") toEmit.end = evt.data.end;
       if (typeof evt.data.duration !== "undefined") toEmit.duration = evt.data.duration;
-      this.emit("start", toEmit);
+      this.emit("enter", toEmit);
       eventsRef.push(evt);
     }
   }.bind(this));
