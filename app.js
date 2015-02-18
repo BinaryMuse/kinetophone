@@ -119,7 +119,9 @@ function createKinetophone(index) {
 
   slider.max = totalDuration;
 
-  if (playing) kinetophone.play();
+  if (playing) setTimeout(function() {
+    kinetophone.play();
+  });
 }
 
 function preloadImage(src) {
