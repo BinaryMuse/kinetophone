@@ -1,7 +1,7 @@
 {
   "name": "kinetophone",
   "version": "0.0.2",
-  "description": "Stitch together time-sequenced events",
+  "description": "Stitch together and play back time-sequenced events with durations",
   "main": "index.js",
   "scripts": {
     "build": "webpack --output-library Kinetophone --output-library-target umd index.js build/kinetophone.js",
