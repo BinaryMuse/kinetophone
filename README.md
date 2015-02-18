@@ -3,7 +3,7 @@ Kinetophone
 
 ![Kinetophone](https://raw.githubusercontent.com/BinaryMuse/kinetophone/master/images/kinetophone.jpg)
 
-Kinetophone is a library for stitching together time-sequenced events. It's primary use-case is to turn a series of audio and video files into a faux video.
+Kinetophone is a library for stitching together time-sequenced events. Its primary use-case is to turn a series of audio and video files into a faux video.
 
 Installation
 ------------
@@ -21,7 +21,7 @@ Kinetophone also works with browser module bundlers like Browserify and webpack.
 Example
 -------
 
-Here's a Kinetophone app that will display a series of images, one per second.
+Here's a simple Kinetophone app that will display a series of images, one per second.
 
 ```html
 <image id="display">
@@ -52,6 +52,8 @@ kinetophone.on("start", function(evt) {
 
 kinetophone.start();
 ```
+
+For more complete examples, check out [the demos on the Kinetophone home page](http://binarymuse.github.io/kinetophone/) and the [associated source code](https://github.com/BinaryMuse/kinetophone/tree/gh-pages).
 
 Usage
 -----
@@ -135,6 +137,10 @@ Indicates the Kinetophone's playhead has moved. Also emitted after calling `curr
 Indicates the Kinetophone's playhead was seeked to a specific time using `currentTime(ms)`.
 
 * `time` - the time that was seeked to
+
+**`finish`**
+
+Indicates the Kinetophone has stopped because it reached its maximum duration.
 
 ### Channels
 
