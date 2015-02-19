@@ -70,39 +70,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  this._channels = {};
 	  this._activeEventsPerChannel = {};
 
-	  channels.forEach(function(channel) {
-	    var name = channel.name;
-
-	    if (this._channels[name]) {
-	      throw new Error("Duplicate channel name '" + name + "'");
-	    }
-
-	    var tree = new IntervalTree(totalDuration / 2),
-	        events = channel.events || [];
-
-	    events.forEach(function(evt) {
-	      var end;
-	      if (typeof evt.end === "undefined" && typeof evt.duration === "undefined") {
-	        end = evt.start + 1;
-	      } else if (typeof evt.end === "undefined") {
-	        end = evt.start + evt.duration;
-	      } else if (typeof evt.duration === "undefined") {
-	        end = evt.end;
-	      } else {
-	        throw new Error("Cannot specify both 'end' and 'duration'");
-	      }
-
-	      tree.add([evt.start, end, { start: evt.start, end: end, data: evt }]);
-	    });
-
-	    this._channels[name] = {
-	      name: name,
-	      events: tree
-	    };
-	    this._activeEventsPerChannel[name] = [];
-	  }.bind(this));
+	  channels.forEach(this.addChannel.bind(this));
 
 	  this._totalDuration = totalDuration;
+	  this._playing = false;
 	  this._timer = new Timex();
 	  this._timer.register(this._timerCallback.bind(this));
 	  this._lastTimerCallback = null;
@@ -112,6 +83,66 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	Kinetophone.prototype = EventEmitter.prototype;
+
+	Kinetophone.prototype.addChannel = function(channel) {
+	  var name = channel.name;
+
+	  if (this._channels[name]) {
+	    throw new Error("Duplicate channel name '" + name + "'");
+	  }
+
+	  var tree = new IntervalTree(totalDuration / 2),
+	      events = channel.events || [];
+
+	  this._channels[name] = {
+	    name: name,
+	    events: events,
+	    tree: tree
+	  };
+	  this._activeEventsPerChannel[name] = [];
+
+	  events.forEach(function(evt) {
+	    this._addEventToTree(tree, evt);
+	  }.bind(this));
+	};
+
+	Kinetophone.prototype.addEvent = function(channelName, evt) {
+	  var tree = this._channels[channelName].tree;
+	  this._addEventToTree(tree, evt);
+	};
+
+	Kinetophone.prototype._addEventToTree = function(tree, evt) {
+	  var end;
+	  if (typeof evt.end === "undefined" && typeof evt.duration === "undefined") {
+	    end = evt.start + 1;
+	  } else if (typeof evt.end === "undefined") {
+	    end = evt.start + evt.duration;
+	  } else if (typeof evt.duration === "undefined") {
+	    end = evt.end;
+	  } else {
+	    throw new Error("Cannot specify both 'end' and 'duration'");
+	  }
+
+	  tree.add([evt.start, end, { start: evt.start, end: end, data: evt }]);
+	};
+
+	Kinetophone.prototype.setTotalDuration = function(duration) {
+	  if (totalDuration === null || typeof totalDuration === "undefined") {
+	    throw new Error("You must specify a total duration");
+	  }
+
+	  this._totalDuration = duration;
+
+	  Object.keys(this._channels).forEach(function(channelName) {
+	    var channel = this._channels[channelName];
+	    delete this._channels[channelName];
+
+	    this.addChannel({
+	      name: channel.name,
+	      events: channel.events
+	    });
+	  }.bind(this));
+	};
 
 	Kinetophone.prototype._timerCallback = function(time) {
 	  if (this._lastTimerCallback === null) {
@@ -134,19 +165,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	Kinetophone.prototype.pause = function() {
-	  if (!this.playing) return;
+	  if (!this._playing) return;
 
-	  this.playing = false;
+	  this._playing = false;
 	  this.emit("pause");
 	  this._timer.pause();
 	};
 
 	Kinetophone.prototype.play = function() {
-	  if (this.playing) return;
+	  if (this._playing) return;
 
-	  this.playing = true;
+	  this._playing = true;
 	  this.emit("play");
 	  this._timer.start();
+	};
+
+	Kinetophone.prototype.playing = function() {
+	  return this._playing;
 	};
 
 	Kinetophone.prototype.currentTime = function(newTime) {
@@ -156,10 +191,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this._lastTimerCallback = newTime;
 	    if (newTime < 0) newTime = 0;
 	    if (newTime > this._totalDuration) newTime = this._totalDuration;
-	    this.emit("seek", newTime);
-	    this.emit("timeupdate", newTime);
+	    this.emit("seeking", newTime);
 	    this._timer.set(newTime);
+	    this.emit("timeupdate", newTime);
 	    this._resolveEvents(newTime, newTime);
+	    this.emit("seek", newTime);
 	  }
 	};
 
@@ -182,8 +218,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  var eventsToRemove = [];
 	  var eventsToAdd = lastTime === currentTime ?
-	      this._channels[channel].events.search(currentTime) :
-	      this._channels[channel].events.search(lastTime, currentTime);
+	      this._channels[channel].tree.search(currentTime) :
+	      this._channels[channel].tree.search(lastTime, currentTime);
 
 	  eventsRef.forEach(function(evt, i) {
 	    if (currentTime < evt.start || currentTime >= evt.end) {
@@ -471,7 +507,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
 	var raf = __webpack_require__(4),
-	    now = __webpack_require__(6);
+	    now = __webpack_require__(5);
 
 	function Timer() {
 	  this.running = false;
@@ -543,7 +579,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var SortedList = __webpack_require__(5);
+	var SortedList = __webpack_require__(6);
 
 	/**
 	 * IntervalTree
@@ -923,6 +959,45 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/* WEBPACK VAR INJECTION */(function(process) {// Generated by CoffeeScript 1.7.1
+	(function() {
+	  var getNanoSeconds, hrtime, loadTime;
+
+	  if ((typeof performance !== "undefined" && performance !== null) && performance.now) {
+	    module.exports = function() {
+	      return performance.now();
+	    };
+	  } else if ((typeof process !== "undefined" && process !== null) && process.hrtime) {
+	    module.exports = function() {
+	      return (getNanoSeconds() - loadTime) / 1e6;
+	    };
+	    hrtime = process.hrtime;
+	    getNanoSeconds = function() {
+	      var hr;
+	      hr = hrtime();
+	      return hr[0] * 1e9 + hr[1];
+	    };
+	    loadTime = getNanoSeconds();
+	  } else if (Date.now) {
+	    module.exports = function() {
+	      return Date.now() - loadTime;
+	    };
+	    loadTime = Date.now();
+	  } else {
+	    module.exports = function() {
+	      return new Date().getTime() - loadTime;
+	    };
+	    loadTime = new Date().getTime();
+	  }
+
+	}).call(this);
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*package.json
 	{
 	  "volo": {
@@ -1135,45 +1210,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return SortedList;
 	}));
 
-
-/***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {// Generated by CoffeeScript 1.7.1
-	(function() {
-	  var getNanoSeconds, hrtime, loadTime;
-
-	  if ((typeof performance !== "undefined" && performance !== null) && performance.now) {
-	    module.exports = function() {
-	      return performance.now();
-	    };
-	  } else if ((typeof process !== "undefined" && process !== null) && process.hrtime) {
-	    module.exports = function() {
-	      return (getNanoSeconds() - loadTime) / 1e6;
-	    };
-	    hrtime = process.hrtime;
-	    getNanoSeconds = function() {
-	      var hr;
-	      hr = hrtime();
-	      return hr[0] * 1e9 + hr[1];
-	    };
-	    loadTime = getNanoSeconds();
-	  } else if (Date.now) {
-	    module.exports = function() {
-	      return Date.now() - loadTime;
-	    };
-	    loadTime = Date.now();
-	  } else {
-	    module.exports = function() {
-	      return new Date().getTime() - loadTime;
-	    };
-	    loadTime = new Date().getTime();
-	  }
-
-	}).call(this);
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
 
 /***/ },
 /* 7 */
