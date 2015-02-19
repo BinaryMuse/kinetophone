@@ -1,6 +1,6 @@
 {
   "name": "kinetophone",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Stitch together and play back time-sequenced events with durations",
   "main": "index.js",
   "scripts": {
