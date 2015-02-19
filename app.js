@@ -1,6 +1,7 @@
-var kinetophone, currentAudio, playing;
+var kinetophone, currentAudio;
 
-var FRAME_TIME = 33;
+var FRAME_TIME = 33,
+    SKIP_FRAMES = 2;
 
 var imageSets = [
   { name: "ski", count: 176 },
@@ -34,13 +35,11 @@ slider.max = totalDuration;
 // Playing/Pausing affects both the Kinetophone's internal
 // playhead and the current audio clip.
 playpause.addEventListener("click", function() {
-  if (playing) {
-    playing = false;
+  if (kinetophone.playing()) {
     kinetophone.pause();
     currentAudio && currentAudio.audio.pause();
     playpause.textContent = "Play";
   } else {
-    playing = true;
     kinetophone.play();
     currentAudio && currentAudio.audio.play();
     playpause.textContent = "Pause";
@@ -56,6 +55,8 @@ slider.addEventListener("input", function() {
 
 // For the frames channel, we'll build an array of frame events for
 // each image set, then combine them into one big array at the end.
+// We'll also cut out every other frame to make the demo run a bit
+// better.
 var framesChannel = {
   name: "frame",
   events: imageSets.map(function(imageset) {
@@ -66,13 +67,15 @@ var framesChannel = {
 
       return {
         start: imageset.start + frameIdx * FRAME_TIME,
-        duration: FRAME_TIME,
-        data: { src: src }
+        duration: FRAME_TIME * SKIP_FRAMES,
+        data: { index: frameIdx, src: src }
       };
     });
   }).reduce(function(acc, curr) {
     return acc.concat(curr);
-  }, [])
+  }, []).filter(function(frame) {
+    return frame.data.index % SKIP_FRAMES === 0;
+  })
 };
 
 // We have one audio clip per image set; each starts when the
@@ -136,7 +139,7 @@ kinetophone.on("enter:audio", function(evt) {
 
   var offset = kinetophone.currentTime() - evt.start;
   currentAudio.audio.currentTime = offset / 1000;
-  if (playing) currentAudio.audio.play();
+  if (kinetophone.playing()) currentAudio.audio.play();
 });
 
 // When we *exit* an audio event, we want to pause the currently
@@ -170,7 +173,7 @@ kinetophone.on("seek", function(time) {
     var start = currentAudio.start,
         offset = time - start;
     currentAudio.audio.currentTime = offset / 1000;
-    if (playing) currentAudio.audio.play();
+    if (kinetophone.playing()) currentAudio.audio.play();
   }
 });
 
