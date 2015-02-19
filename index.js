@@ -14,39 +14,10 @@ function Kinetophone(channels, totalDuration, options) {
   this._channels = {};
   this._activeEventsPerChannel = {};
 
-  channels.forEach(function(channel) {
-    var name = channel.name;
-
-    if (this._channels[name]) {
-      throw new Error("Duplicate channel name '" + name + "'");
-    }
-
-    var tree = new IntervalTree(totalDuration / 2),
-        events = channel.events || [];
-
-    events.forEach(function(evt) {
-      var end;
-      if (typeof evt.end === "undefined" && typeof evt.duration === "undefined") {
-        end = evt.start + 1;
-      } else if (typeof evt.end === "undefined") {
-        end = evt.start + evt.duration;
-      } else if (typeof evt.duration === "undefined") {
-        end = evt.end;
-      } else {
-        throw new Error("Cannot specify both 'end' and 'duration'");
-      }
-
-      tree.add([evt.start, end, { start: evt.start, end: end, data: evt }]);
-    });
-
-    this._channels[name] = {
-      name: name,
-      events: tree
-    };
-    this._activeEventsPerChannel[name] = [];
-  }.bind(this));
+  channels.forEach(this.addChannel.bind(this));
 
   this._totalDuration = totalDuration;
+  this._playing = false;
   this._timer = new Timex();
   this._timer.register(this._timerCallback.bind(this));
   this._lastTimerCallback = null;
@@ -56,6 +27,66 @@ function Kinetophone(channels, totalDuration, options) {
 }
 
 Kinetophone.prototype = EventEmitter.prototype;
+
+Kinetophone.prototype.addChannel = function(channel) {
+  var name = channel.name;
+
+  if (this._channels[name]) {
+    throw new Error("Duplicate channel name '" + name + "'");
+  }
+
+  var tree = new IntervalTree(totalDuration / 2),
+      events = channel.events || [];
+
+  this._channels[name] = {
+    name: name,
+    events: events,
+    tree: tree
+  };
+  this._activeEventsPerChannel[name] = [];
+
+  events.forEach(function(evt) {
+    this._addEventToTree(tree, evt);
+  }.bind(this));
+};
+
+Kinetophone.prototype.addEvent = function(channelName, evt) {
+  var tree = this._channels[channelName].tree;
+  this._addEventToTree(tree, evt);
+};
+
+Kinetophone.prototype._addEventToTree = function(tree, evt) {
+  var end;
+  if (typeof evt.end === "undefined" && typeof evt.duration === "undefined") {
+    end = evt.start + 1;
+  } else if (typeof evt.end === "undefined") {
+    end = evt.start + evt.duration;
+  } else if (typeof evt.duration === "undefined") {
+    end = evt.end;
+  } else {
+    throw new Error("Cannot specify both 'end' and 'duration'");
+  }
+
+  tree.add([evt.start, end, { start: evt.start, end: end, data: evt }]);
+};
+
+Kinetophone.prototype.setTotalDuration = function(duration) {
+  if (totalDuration === null || typeof totalDuration === "undefined") {
+    throw new Error("You must specify a total duration");
+  }
+
+  this._totalDuration = duration;
+
+  Object.keys(this._channels).forEach(function(channelName) {
+    var channel = this._channels[channelName];
+    delete this._channels[channelName];
+
+    this.addChannel({
+      name: channel.name,
+      events: channel.events
+    });
+  }.bind(this));
+};
 
 Kinetophone.prototype._timerCallback = function(time) {
   if (this._lastTimerCallback === null) {
@@ -78,19 +109,23 @@ Kinetophone.prototype._timerCallback = function(time) {
 };
 
 Kinetophone.prototype.pause = function() {
-  if (!this.playing) return;
+  if (!this._playing) return;
 
-  this.playing = false;
+  this._playing = false;
   this.emit("pause");
   this._timer.pause();
 };
 
 Kinetophone.prototype.play = function() {
-  if (this.playing) return;
+  if (this._playing) return;
 
-  this.playing = true;
+  this._playing = true;
   this.emit("play");
   this._timer.start();
+};
+
+Kinetophone.prototype.playing = function() {
+  return this._playing;
 };
 
 Kinetophone.prototype.currentTime = function(newTime) {
@@ -100,10 +135,11 @@ Kinetophone.prototype.currentTime = function(newTime) {
     this._lastTimerCallback = newTime;
     if (newTime < 0) newTime = 0;
     if (newTime > this._totalDuration) newTime = this._totalDuration;
-    this.emit("seek", newTime);
-    this.emit("timeupdate", newTime);
+    this.emit("seeking", newTime);
     this._timer.set(newTime);
+    this.emit("timeupdate", newTime);
     this._resolveEvents(newTime, newTime);
+    this.emit("seek", newTime);
   }
 };
 
@@ -126,8 +162,8 @@ Kinetophone.prototype._resolveEventsForChannel = function(channel, lastTime, cur
 
   var eventsToRemove = [];
   var eventsToAdd = lastTime === currentTime ?
-      this._channels[channel].events.search(currentTime) :
-      this._channels[channel].events.search(lastTime, currentTime);
+      this._channels[channel].tree.search(currentTime) :
+      this._channels[channel].tree.search(lastTime, currentTime);
 
   eventsRef.forEach(function(evt, i) {
     if (currentTime < evt.start || currentTime >= evt.end) {

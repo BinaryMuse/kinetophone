@@ -68,6 +68,25 @@ Constructs a new Kinetophone instance.
   * `options.timeUpdateResolution` - the minimum number of milliseconds between internal updates (controls how often Kinetophone checks for "current" events and the frequency of `timeupdate` events); defaults to `33`
   * `options.tickImmediately` - if true, Kinetophone will emit a `timeupdate` event for time `0` and any events with a `start` of `0` on the next tick (to give you time to attach event handlers); defaults to `false`
 
+**`Kinetophone#addChannel(channel)`**
+
+Adds a channel to the Kinetophone.
+
+* `channel` - the channel to add (see "Channels" below)
+
+**`Kinetophone#addEvent(channelName, event)`**
+
+Adds an event to an existing channel identified by the name `channelName`.
+
+* `channelName` - the name of the channel to add the event to
+* `event` - the event to add
+
+**`Kinetophone#setTotalDuration(duration)`**
+
+Sets the Kinetophone's total timeline duration. Note that this rebuilds the internal interval tree for every channel, so it's better to set this before you add any channels (e.g. in the constructor).
+
+* `duration` - the total duration of the timeline in milliseconds.
+
 **`Kinetophone#pause()`**
 
 Pauses the Kinetophone.
@@ -79,6 +98,10 @@ Starts (or resumes) the Kinetophone.
 **`Kinetophone#currentTime([ms])`**
 
 Gets (when given no arguments) or sets (when given a numeric argument) the Kinetophone's current time in milliseconds.
+
+**`Kinetophone#playing()`**
+
+Returns whether or not the Kinetophone is currently playing.
 
 **`Kinetophone#on(event, handler)`**
 
@@ -142,13 +165,17 @@ Indicates the Kinetophone was paused.
 
 **`timeupdate(time)`**
 
-Indicates the Kinetophone's playhead has moved. Also emitted after calling `currentTime(ms)`.
+Indicates the Kinetophone's playhead has moved. Also emitted after calling `currentTime(ms)`. Emitted before events at the new time are entered/exited.
 
 * `time` - the current (new) playhead time
 
+**`seeking(time)`**
+
+Indicates the Kinetophone received a request to move the playhead to a new time using `currentTime(ms)`. Emitted before the events at the new time are entered/exited.
+
 **`seek(time)`**
 
-Indicates the Kinetophone's playhead was seeked to a specific time using `currentTime(ms)`.
+Indicates the Kinetophone's playhead was seeked to a specific time using `currentTime(ms)`. Emitted after the events at the new time are entered/exited.
 
 * `time` - the time that was seeked to
 
