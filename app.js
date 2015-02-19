@@ -53,13 +53,13 @@ slider.addEventListener("input", function() {
   kinetophone.currentTime(time);
 });
 
-// For the frames channel, we'll build an array of frame events for
+// For the frames channel, we'll build an array of frame timings for
 // each image set, then combine them into one big array at the end.
 // We'll also cut out every other frame to make the demo run a bit
 // better.
 var framesChannel = {
   name: "frame",
-  events: imageSets.map(function(imageset) {
+  timings: imageSets.map(function(imageset) {
     return range(1, imageset.count).map(function(frame, frameIdx) {
       var img = "" + frame;
       while (img.length < 3) img = "0" + img;
@@ -82,7 +82,7 @@ var framesChannel = {
 // image set starts, and lasts for the duration of the image set.
 var audioChannel = {
   name: "audio",
-  events: imageSets.map(function(imageset, index) {
+  timings: imageSets.map(function(imageset, index) {
     // Rather than returning the source of the audio file to load
     // when the event starts, we'll create the audio file here so
     // it's already started loading by the time we want to play it.
@@ -102,7 +102,7 @@ var audioChannel = {
 // don't get gaps in playback.
 var preloadChannel = {
   name: "preload",
-  events: framesChannel.events.map(function(frame) {
+  timings: framesChannel.timings.map(function(frame) {
     var start = frame.start - 2000;
     if (start < 0) start = 0;
 
@@ -117,38 +117,38 @@ var preloadChannel = {
 var channels = [framesChannel, audioChannel, preloadChannel];
 kinetophone = new Kinetophone(channels, totalDuration, {tickImmediately: true});
 
-// When we get a 'preload' event, we just want to preload the image.
+// When we get a 'preload' timing, we just want to preload the image.
 kinetophone.on("enter:preload", function(image) {
   preloadImage(image.data.src);
 });
 
-// When we get a 'frame' event, show it in the DOM.
+// When we get a 'frame' timing, show it in the DOM.
 kinetophone.on("enter:frame", function(frame) {
   frameImg.src = frame.data.src;
 });
 
-// When we get an 'audio' event, we want to start the audio
+// When we get an 'audio' timing, we want to start the audio
 // playing (assuming the Kinetophone is playing). However,
 // it's possible we jumped into the middle of the audio
-// event, so we need to calculate the correct offset.
-kinetophone.on("enter:audio", function(evt) {
+// timing, so we need to calculate the correct offset.
+kinetophone.on("enter:audio", function(timing) {
   currentAudio = {
-    start: evt.start,
-    audio: evt.data.audio
+    start: timing.start,
+    audio: timing.data.audio
   }
 
-  var offset = kinetophone.currentTime() - evt.start;
+  var offset = kinetophone.currentTime() - timing.start;
   currentAudio.audio.currentTime = offset / 1000;
   if (kinetophone.playing()) currentAudio.audio.play();
 });
 
-// When we *exit* an audio event, we want to pause the currently
+// When we *exit* an audio timing, we want to pause the currently
 // playing audio (if any) and reset its time to 0 so it's ready
 // to play the next time it enters.
 //
 // Note: this only works as written as we have no overlapping audio
-// events.
-kinetophone.on("exit:audio", function(evt) {
+// timings.
+kinetophone.on("exit:audio", function() {
   if (currentAudio) {
     currentAudio.audio.pause();
     currentAudio.audio.currentTime = 0;
