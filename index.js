@@ -136,6 +136,7 @@ Kinetophone.prototype._resolveEventsForChannel = function(channel, lastTime, cur
       if (typeof evt.data.end !== "undefined") toEmit.end = evt.data.end;
       if (typeof evt.data.duration !== "undefined") toEmit.duration = evt.data.duration;
       this.emit("exit", toEmit);
+      this.emit("exit:" + name, toEmit);
       // High to low so indexes don't change when we remove them later
       eventsToRemove.unshift(i);
     }
@@ -166,7 +167,6 @@ Kinetophone.prototype._clearAllEventsForChannel = function(channel) {
     if (typeof evt.data.end !== "undefined") toEmit.end = evt.data.end;
     if (typeof evt.data.duration !== "undefined") toEmit.duration = evt.data.duration;
     this.emit("end", toEmit);
-    this.emit("end:" + name, toEmit);
   }.bind(this));
 
   this._activeEventsPerChannel[channel] = [];
