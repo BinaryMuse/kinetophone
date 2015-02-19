@@ -35,7 +35,7 @@ Kinetophone.prototype.addChannel = function(channel) {
     throw new Error("Duplicate channel name '" + name + "'");
   }
 
-  var tree = new IntervalTree(totalDuration / 2),
+  var tree = new IntervalTree(this._totalDuration / 2),
       timings = channel.timings || [];
 
   this._channels[name] = {
@@ -77,7 +77,7 @@ Kinetophone.prototype._addTimingToTree = function(tree, timing) {
 };
 
 Kinetophone.prototype.setTotalDuration = function(duration) {
-  if (totalDuration === null || typeof totalDuration === "undefined") {
+  if (duration === null || typeof duration === "undefined") {
     throw new Error("You must specify a total duration");
   }
 
