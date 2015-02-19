@@ -81,9 +81,9 @@ Adds a timing to an existing channel identified by the name `channelName`.
 * `channelName` - the name of the channel to add the timing to
 * `timing` - the timing to add
 
-**`Kinetophone#setTotalDuration(duration)`**
+**`Kinetophone#totalDuration([duration])`**
 
-Sets the Kinetophone's total timeline duration. Note that this rebuilds the internal interval tree for every channel, so it's better to set this before you add any channels (e.g. in the constructor).
+Gets (when given no arguments) or sets (when given a numeric argument) the Kinetophone's total timeline duration. Note that setting this value rebuilds the internal interval tree for every channel, so it's better to set this before you add any channels (e.g. in the constructor).
 
 * `duration` - the total duration of the timeline in milliseconds.
 

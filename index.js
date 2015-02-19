@@ -76,22 +76,24 @@ Kinetophone.prototype._addTimingToTree = function(tree, timing) {
   tree.add([timing.start, end, { start: timing.start, end: end, data: timing }]);
 };
 
-Kinetophone.prototype.setTotalDuration = function(duration) {
-  if (duration === null || typeof duration === "undefined") {
-    throw new Error("You must specify a total duration");
+Kinetophone.prototype.totalDuration = function(duration) {
+  if (typeof duration === "undefined") {
+    return this._totalDuration;
+  } else if (duration === null) {
+    throw new Error("You must specify a non-null total duration");
+  } else {
+    this._totalDuration = duration;
+
+    Object.keys(this._channels).forEach(function(channelName) {
+      var channel = this._channels[channelName];
+      delete this._channels[channelName];
+
+      this.addChannel({
+        name: channel.name,
+        timings: channel.timings
+      });
+    }.bind(this));
   }
-
-  this._totalDuration = duration;
-
-  Object.keys(this._channels).forEach(function(channelName) {
-    var channel = this._channels[channelName];
-    delete this._channels[channelName];
-
-    this.addChannel({
-      name: channel.name,
-      timings: channel.timings
-    });
-  }.bind(this));
 };
 
 Kinetophone.prototype._timerCallback = function(time) {
