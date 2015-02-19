@@ -7,6 +7,11 @@
     "build": "webpack --output-library Kinetophone --output-library-target umd index.js build/kinetophone.js",
     "build-min": "webpack --output-library Kinetophone --output-library-target umd -p index.js build/kinetophone.min.js"
   },
+  "homepage": "https://github.com/BinaryMuse/kinetophone",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BinaryMuse/kinetophone.git"
+  },
   "author": "BinaryMuse",
   "license": "MIT",
   "dependencies": {
