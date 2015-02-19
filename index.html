@@ -1,21 +1,41 @@
 <!doctype html>
 
-<h1>Kinetophone</h1>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="pure-min.css">
+<style>
+.content {
+  width: 600px;
+  margin: 0 auto;
+}
+</style>
 
-<p>
-  The "video" below was built with <a href="https://github.com/BinaryMuse/kinetophone/">Kinetophone</a>.
-  It is actually a series of still images and audio clips synchronized to a timer.
-  Check out the source for this demo
-  <a href="https://github.com/BinaryMuse/kinetophone/blob/gh-pages/app.js">on GitHub</a>.
-</p>
+<div class="content">
+  <h1>Kinetophone</h1>
 
-<div>
-  <button id="playpause" style="width: 75px">Play</button>
-  <input id="slider" type="range" min="0" value="0" style="width: 300px">
-</div>
+  <p>
+    The "video" below was built with <a href="https://github.com/BinaryMuse/kinetophone/">Kinetophone</a>.
+    It is actually a series of still images and audio clips synchronized to a timer.
+    Check out the source for this demo
+    <a href="https://github.com/BinaryMuse/kinetophone/blob/gh-pages/app.js">on GitHub</a>.
+  </p>
 
-<div style="padding: 10px 0">
-  <img id="frame">
+  <div>
+    <button id="playpause" class="pure-button pure-button-primary" style="width: 75px">Play</button>
+    <input id="slider" type="range" min="0" value="0" style="width: 470px">
+  </div>
+
+  <div style="padding: 10px 0">
+    <img id="frame">
+  </div>
+
+  <hr>
+
+  <span style="display: inline-block; float: left;">
+    <a href="https://github.com/BinaryMuse/kinetophone/">View Kinetophone on GitHub</a>
+  </span>
+  <span style="display: inline-block; float: right;">
+    Copyright &copy; 2015 Brandon Tilley
+  </span>
 </div>
 
 <script src="build/kinetophone.js"></script>

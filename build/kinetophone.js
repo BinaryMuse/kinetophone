@@ -107,7 +107,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	Kinetophone.prototype.addEvent = function(channelName, evt) {
-	  var tree = this._channels[channelName].tree;
+	  var channel = this._channels[channelName];
+
+	  if (!channel) {
+	    throw new Error("No such channel '" + channelName + "'");
+	  }
+
+	  var tree = channel.tree;
 	  this._addEventToTree(tree, evt);
 	};
 
