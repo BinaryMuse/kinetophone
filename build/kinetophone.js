@@ -69,10 +69,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  this._channels = {};
 	  this._activeTimingsPerChannel = {};
+	  this._totalDuration = totalDuration;
 
 	  channels.forEach(this.addChannel.bind(this));
 
-	  this._totalDuration = totalDuration;
 	  this._playing = false;
 	  this._timer = new Timex();
 	  this._timer.register(this._timerCallback.bind(this));
