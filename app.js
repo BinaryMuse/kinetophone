@@ -28,7 +28,8 @@ var totalDuration = imageSets.reduce(function(acc, imageset) {
 
 var frameImg = document.getElementById("frame"),
     playpause = document.getElementById("playpause"),
-    slider = document.getElementById("slider");
+    slider = document.getElementById("slider"),
+    timedisplay = document.getElementById("timedisplay");
 
 slider.max = totalDuration;
 
@@ -163,6 +164,12 @@ kinetophone.on("end", function() {
 // Keep the slider up to date with the current time.
 kinetophone.on("timeupdate", function(time) {
   slider.value = time;
+
+  time = time / 1000;
+  var minutes = Math.floor(time / 60),
+      seconds = "" + Math.floor(time % 60);
+  while (seconds.length < 2) seconds = "0" + seconds;
+  timedisplay.textContent = minutes + ":" + seconds;
 });
 
 // When we jump to an arbitrary time, we need to update
