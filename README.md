@@ -16,6 +16,10 @@ You can then require it as normal:
 
     var Kinetophone = require("kinetophone");
 
+Kinetophone is also available on Bower:
+
+    bower install [--save] kinetophone
+
 Kinetophone also works with browser module bundlers like Browserify and webpack.
 
 Example
