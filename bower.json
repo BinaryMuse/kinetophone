@@ -1,0 +1,19 @@
+{
+  "name": "kinetophone",
+  "main": "build/kinetophone.min.js",
+  "version": "0.0.8",
+  "homepage": "https://github.com/BinaryMuse/kinetophone",
+  "authors": [
+    "BinaryMuse <brandon@brandontilley.com>"
+  ],
+  "description": "Stitch together and play back time-sequenced events with durations",
+  "keywords": [
+    "kinetophone"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "node_modules",
+    "test",
+    "images"
+  ]
+}
