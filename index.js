@@ -127,6 +127,12 @@ Kinetophone.prototype.pause = function() {
 Kinetophone.prototype.play = function() {
   if (this._playing) return;
 
+  if (this._timer.currentTime >= this._totalDuration) {
+    this._timer.set(0);
+    this._lastTimerCallback = null;
+    this._clearAllTimings();
+  }
+
   this._playing = true;
   this.emit("play");
   this._timer.start();
