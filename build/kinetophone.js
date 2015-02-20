@@ -132,22 +132,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	  tree.add([timing.start, end, { start: timing.start, end: end, data: timing }]);
 	};
 
-	Kinetophone.prototype.setTotalDuration = function(duration) {
-	  if (duration === null || typeof duration === "undefined") {
-	    throw new Error("You must specify a total duration");
+	Kinetophone.prototype.totalDuration = function(duration) {
+	  if (typeof duration === "undefined") {
+	    return this._totalDuration;
+	  } else if (duration === null) {
+	    throw new Error("You must specify a non-null total duration");
+	  } else {
+	    this._totalDuration = duration;
+
+	    Object.keys(this._channels).forEach(function(channelName) {
+	      var channel = this._channels[channelName];
+	      delete this._channels[channelName];
+
+	      this.addChannel({
+	        name: channel.name,
+	        timings: channel.timings
+	      });
+	    }.bind(this));
 	  }
-
-	  this._totalDuration = duration;
-
-	  Object.keys(this._channels).forEach(function(channelName) {
-	    var channel = this._channels[channelName];
-	    delete this._channels[channelName];
-
-	    this.addChannel({
-	      name: channel.name,
-	      timings: channel.timings
-	    });
-	  }.bind(this));
 	};
 
 	Kinetophone.prototype._timerCallback = function(time) {
@@ -180,6 +182,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Kinetophone.prototype.play = function() {
 	  if (this._playing) return;
+
+	  if (this._timer.currentTime >= this._totalDuration) {
+	    this._timer.set(0);
+	    this._lastTimerCallback = null;
+	    this._clearAllTimings();
+	  }
 
 	  this._playing = true;
 	  this.emit("play");
@@ -218,8 +226,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	Kinetophone.prototype._resolveTimingsForChannel = function(channel, lastTime, currentTime) {
-	  var name = this._channels[channel].name;
-
 	  var timingsRef = this._activeTimingsPerChannel[channel];
 
 	  var timingsToRemove = [];
@@ -229,12 +235,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  timingsRef.forEach(function(timing, i) {
 	    if (currentTime < timing.start || currentTime >= timing.end) {
-	      var toEmit = { name: name, start: timing.start, data: timing.data.data };
+	      var toEmit = { name: channel, start: timing.start, data: timing.data.data };
 	      if (typeof timing.data.data !== "undefined") toEmit.data = timing.data.data;
 	      if (typeof timing.data.end !== "undefined") toEmit.end = timing.data.end;
 	      if (typeof timing.data.duration !== "undefined") toEmit.duration = timing.data.duration;
 	      this.emit("exit", toEmit);
-	      this.emit("exit:" + name, toEmit);
+	      this.emit("exit:" + channel, toEmit);
 	      // High to low so indexes don't change when we remove them later
 	      timingsToRemove.unshift(i);
 	    }
@@ -247,12 +253,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  timingsToAdd.forEach(function(timing) {
 	    timing = timing.data[2];
 	    if (currentTime >= timing.start && currentTime < timing.end && timingsRef.indexOf(timing) === -1) {
-	      var toEmit = { name: name, start: timing.data.start };
+	      var toEmit = { name: channel, start: timing.data.start };
 	      if (typeof timing.data.data !== "undefined") toEmit.data = timing.data.data;
 	      if (typeof timing.data.end !== "undefined") toEmit.end = timing.data.end;
 	      if (typeof timing.data.duration !== "undefined") toEmit.duration = timing.data.duration;
 	      this.emit("enter", toEmit);
-	      this.emit("enter:" + name, toEmit);
+	      this.emit("enter:" + channel, toEmit);
 	      timingsRef.push(timing);
 	    }
 	  }.bind(this));
@@ -260,11 +266,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Kinetophone.prototype._clearAllTimingsForChannel = function(channel) {
 	  this._activeTimingsPerChannel[channel].forEach(function(timing) {
-	    var toEmit = { name: name, start: timing.start, data: timing.data.data };
+	    var toEmit = { name: channel, start: timing.start, data: timing.data.data };
 	    if (typeof timing.data.data !== "undefined") toEmit.data = timing.data.data;
 	    if (typeof timing.data.end !== "undefined") toEmit.end = timing.data.end;
 	    if (typeof timing.data.duration !== "undefined") toEmit.duration = timing.data.duration;
-	    this.emit("end", toEmit);
+	    this.emit("exit", toEmit);
+	    this.emit("exit:" + channel, toEmit);
 	  }.bind(this));
 
 	  this._activeTimingsPerChannel[channel] = [];
