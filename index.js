@@ -212,11 +212,12 @@ Kinetophone.prototype._resolveTimingsForChannel = function(channel, lastTime, cu
 
 Kinetophone.prototype._clearAllTimingsForChannel = function(channel) {
   this._activeTimingsPerChannel[channel].forEach(function(timing) {
-    var toEmit = { name: name, start: timing.start, data: timing.data.data };
+    var toEmit = { name: channel, start: timing.start, data: timing.data.data };
     if (typeof timing.data.data !== "undefined") toEmit.data = timing.data.data;
     if (typeof timing.data.end !== "undefined") toEmit.end = timing.data.end;
     if (typeof timing.data.duration !== "undefined") toEmit.duration = timing.data.duration;
-    this.emit("end", toEmit);
+    this.emit("exit", toEmit);
+    this.emit("exit:" + channel, toEmit);
   }.bind(this));
 
   this._activeTimingsPerChannel[channel] = [];
