@@ -170,8 +170,6 @@ Kinetophone.prototype._clearAllTimings = function() {
 };
 
 Kinetophone.prototype._resolveTimingsForChannel = function(channel, lastTime, currentTime) {
-  var name = this._channels[channel].name;
-
   var timingsRef = this._activeTimingsPerChannel[channel];
 
   var timingsToRemove = [];
@@ -181,12 +179,12 @@ Kinetophone.prototype._resolveTimingsForChannel = function(channel, lastTime, cu
 
   timingsRef.forEach(function(timing, i) {
     if (currentTime < timing.start || currentTime >= timing.end) {
-      var toEmit = { name: name, start: timing.start, data: timing.data.data };
+      var toEmit = { name: channel, start: timing.start, data: timing.data.data };
       if (typeof timing.data.data !== "undefined") toEmit.data = timing.data.data;
       if (typeof timing.data.end !== "undefined") toEmit.end = timing.data.end;
       if (typeof timing.data.duration !== "undefined") toEmit.duration = timing.data.duration;
       this.emit("exit", toEmit);
-      this.emit("exit:" + name, toEmit);
+      this.emit("exit:" + channel, toEmit);
       // High to low so indexes don't change when we remove them later
       timingsToRemove.unshift(i);
     }
@@ -199,12 +197,12 @@ Kinetophone.prototype._resolveTimingsForChannel = function(channel, lastTime, cu
   timingsToAdd.forEach(function(timing) {
     timing = timing.data[2];
     if (currentTime >= timing.start && currentTime < timing.end && timingsRef.indexOf(timing) === -1) {
-      var toEmit = { name: name, start: timing.data.start };
+      var toEmit = { name: channel, start: timing.data.start };
       if (typeof timing.data.data !== "undefined") toEmit.data = timing.data.data;
       if (typeof timing.data.end !== "undefined") toEmit.end = timing.data.end;
       if (typeof timing.data.duration !== "undefined") toEmit.duration = timing.data.duration;
       this.emit("enter", toEmit);
-      this.emit("enter:" + name, toEmit);
+      this.emit("enter:" + channel, toEmit);
       timingsRef.push(timing);
     }
   }.bind(this));
