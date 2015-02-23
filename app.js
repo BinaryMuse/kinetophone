@@ -5,10 +5,10 @@ var FRAME_TIME = 33,
 
 var imageSets = [
   { name: "ski", count: 176 },
-  { name: "helicoptor", count: 153 },
-  { name: "jetpack", count: 123 },
-  { name: "horse", count: 105 },
-  { name: "tail", count: 81 }
+  { name: "helicoptor", count: 152 },
+  { name: "jetpack", count: 122 },
+  { name: "horse", count: 104 },
+  { name: "tail", count: 80 }
 ];
 
 // Each image set starts when the last one ended.
@@ -29,7 +29,8 @@ var totalDuration = imageSets.reduce(function(acc, imageset) {
 var frameImg = document.getElementById("frame"),
     playpause = document.getElementById("playpause"),
     slider = document.getElementById("slider"),
-    timedisplay = document.getElementById("timedisplay");
+    timedisplay = document.getElementById("timedisplay"),
+    currentTimings = document.getElementById("currenttimings");
 
 slider.max = totalDuration;
 
@@ -81,19 +82,22 @@ var framesChannel = {
 
 // We have one audio clip per image set; each starts when the
 // image set starts, and lasts for the duration of the image set.
+var audioElems = {};
 var audioChannel = {
   name: "audio",
   timings: imageSets.map(function(imageset, index) {
     // Rather than returning the source of the audio file to load
     // when the event starts, we'll create the audio file here so
     // it's already started loading by the time we want to play it.
-    var audio = new Audio();
-    audio.src = "media/" + imageset.name + "-audio.mp3";
+    var audio = new Audio(),
+        src = "media/" + imageset.name + "-audio.mp3";
+    audio.src = src;
+    audioElems[src] = audio;
     return {
       start: imageset.start,
       duration: imageset.count * FRAME_TIME,
       data: {
-        audio: audio
+        src: src
       }
     };
   })
@@ -135,7 +139,7 @@ kinetophone.on("enter:frame", function(frame) {
 kinetophone.on("enter:audio", function(timing) {
   currentAudio = {
     start: timing.start,
-    audio: timing.data.audio
+    audio: audioElems[timing.data.src]
   }
 
   var offset = kinetophone.currentTime() - timing.start;
@@ -165,11 +169,15 @@ kinetophone.on("end", function() {
 kinetophone.on("timeupdate", function(time) {
   slider.value = time;
 
-  time = time / 1000;
-  var minutes = Math.floor(time / 60),
-      seconds = "" + Math.floor(time % 60);
+  var secTime = time / 1000;
+  var minutes = Math.floor(secTime / 60),
+      seconds = "" + Math.floor(secTime % 60);
   while (seconds.length < 2) seconds = "0" + seconds;
   timedisplay.textContent = minutes + ":" + seconds;
+
+  // Show the current frame and audio timings
+  var current = kinetophone.getTimingsAt(time, ["frame", "audio"]);
+  currentTimings.textContent = JSON.stringify(current, null, "  ");
 });
 
 // When we jump to an arbitrary time, we need to update
