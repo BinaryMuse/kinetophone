@@ -197,10 +197,7 @@ Kinetophone.prototype._resolveTimingsForChannel = function(channel, lastTime, cu
   timingsToAdd.forEach(function(timing) {
     timing = timing.data[2];
     if (currentTime >= timing.start && currentTime < timing.end && timingsRef.indexOf(timing) === -1) {
-      var toEmit = { name: channel, start: timing.data.start };
-      if (typeof timing.data.data !== "undefined") toEmit.data = timing.data.data;
-      if (typeof timing.data.end !== "undefined") toEmit.end = timing.data.end;
-      if (typeof timing.data.duration !== "undefined") toEmit.duration = timing.data.duration;
+      var toEmit = timingFromRawData(channel, timing);
       this.emit("enter", toEmit);
       this.emit("enter:" + channel, toEmit);
       timingsRef.push(timing);
@@ -210,15 +207,55 @@ Kinetophone.prototype._resolveTimingsForChannel = function(channel, lastTime, cu
 
 Kinetophone.prototype._clearAllTimingsForChannel = function(channel) {
   this._activeTimingsPerChannel[channel].forEach(function(timing) {
-    var toEmit = { name: channel, start: timing.start, data: timing.data.data };
-    if (typeof timing.data.data !== "undefined") toEmit.data = timing.data.data;
-    if (typeof timing.data.end !== "undefined") toEmit.end = timing.data.end;
-    if (typeof timing.data.duration !== "undefined") toEmit.duration = timing.data.duration;
+    var toEmit = timingFromRawData(channel, timing);
     this.emit("exit", toEmit);
     this.emit("exit:" + channel, toEmit);
   }.bind(this));
 
   this._activeTimingsPerChannel[channel] = [];
 };
+
+Kinetophone.prototype.getTimingsAt = function(time, channels) {
+  var search = function(tree) { return tree.search(time); },
+      filter = function(rawTiming) {
+        rawTiming = rawTiming.data[2];
+        return time >= rawTiming.start && time < rawTiming.end;
+      };
+  return this._findTimings(channels, filter, search);
+};
+
+Kinetophone.prototype.getTimingsBetween = function(start, end, channels) {
+  var search = function(tree) { return tree.search(start, end); },
+      filter = function(rawTiming) {
+        rawTiming = rawTiming.data[2];
+        return end !== rawTiming.end; // non-inclusive
+      };
+  return this._findTimings(channels, filter, search);
+};
+
+Kinetophone.prototype._findTimings = function(channels, filterFn, treeSearchFn) {
+  channels = channels || Object.keys(this._channels);
+  if (typeof channels === "string") channels = [channels];
+
+  return channels.map(function(channel) {
+    return {
+      name: channel,
+      timings: treeSearchFn(this._channels[channel].tree).filter(filterFn).map(function(rawTiming) {
+        return timingFromRawData(channel, rawTiming.data[2]);
+      })
+    };
+  }.bind(this)).reduce(function(acc, current) {
+    acc[current.name] = current.timings;
+    return acc;
+  }, {});
+};
+
+function timingFromRawData(channel, timing) {
+  var result = { name: channel, start: timing.data.start };
+  if (typeof timing.data.data !== "undefined") result.data = timing.data.data;
+  if (typeof timing.data.end !== "undefined") result.end = timing.data.end;
+  if (typeof timing.data.duration !== "undefined") result.duration = timing.data.duration;
+  return result;
+}
 
 module.exports = Kinetophone;

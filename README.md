@@ -103,9 +103,26 @@ Starts (or resumes) the Kinetophone.
 
 Gets (when given no arguments) or sets (when given a numeric argument) the Kinetophone's current time in milliseconds.
 
+* `ms` - optional time in milliseconds to set the current playback time to; if not given, returns the current playback time instead
+
 **`Kinetophone#playing()`**
 
 Returns whether or not the Kinetophone is currently playing.
+
+**`{channelName: [timings]} : Kinetophone#getTimingsAt(time[, channels])`**
+
+Returns the timings that are active at `time` milliseconds.
+
+* `time` - the time, in milliseconds, to find timings at
+* `channels` - an optional string or array of strings indicating which channels to search
+
+**`{channelName: [timings]} : Kinetophone#getTimingsBetween(start, end[, channels])`**
+
+Returns the timings that are active at some point between `start` and `end` milliseconds. Returns timings that start *before* `start` or that end *after* `end` as long as they are active at some point in the given range.
+
+* `start` - the time, in milliseconds, to start finding timings at
+* `end` - the time, in milliseconds, to stop finding timings at
+* `channels` - an optional string or array of strings indicating which channels to search
 
 **`Kinetophone#on(event, handler)`**
 
