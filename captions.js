@@ -21,7 +21,7 @@ var captions = [
 
   [52486,  "Umm, you usually get some inane chatter from people."],
   [55557,  "I think they do have too much, I think what we wanna hear is actually what's happening and not what other people think of it."],
-  [61101,  "I... I hate these same sound bites, I don't want some punter's opinion usually, no."],
+  [61101,  "I... I hate these sound bites, I don't want some punter's opinion usually, no."],
 
   [69047,  "Another bit of dull visual abstraction to plug another gap now before the report segues gracefully into a bit of human interest"],
   [74908,  "courtesy of some dowdy man opening letters in a kitchen and explaining how he's been affected by the issue."],
