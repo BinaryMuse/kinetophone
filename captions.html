@@ -1,0 +1,43 @@
+<!doctype html>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="pure-min.css">
+<style>
+.content {
+  width: 600px;
+  margin: 0 auto;
+}
+</style>
+
+<div class="content">
+  <h1>Kinetophone</h1>
+
+  <ul>
+    <li><a href='index.html'>Audio/Video Demo</a></li>
+    <li>Captions Demo</li>
+  </ul>
+
+  <p style="text-align: center;">
+    <video width="480" height="270" controls id="video">
+      <source src="caption_video.mp4" type="video/mp4">
+      <source src="caption_video.webm" type="video/ogg">
+      Your browser does not support this video.
+    </video>
+  </p>
+
+  <p id="caption" style="text-align: center; min-height: 50px""></p>
+
+  <pre id="currenttimings"></pre>
+
+  <hr>
+
+  <span style="display: inline-block; float: left;">
+    <a href="https://github.com/BinaryMuse/kinetophone/">View Kinetophone on GitHub</a>
+  </span>
+  <span style="display: inline-block; float: right;">
+    Copyright &copy; 2015 Brandon Tilley
+  </span>
+</div>
+
+<script src="build/kinetophone.js"></script>
+<script src="captions.js"></script>
