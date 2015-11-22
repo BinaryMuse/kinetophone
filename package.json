@@ -12,7 +12,7 @@
     "type": "git",
     "url": "https://github.com/BinaryMuse/kinetophone.git"
   },
-  "author": "BinaryMuse",
+  "author": "Michelle Tilley <michelle@michelletilley.net>",
   "license": "MIT",
   "dependencies": {
     "eventemitter3": "^0.1.6",
