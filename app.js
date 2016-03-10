@@ -30,6 +30,7 @@ var frameImg = document.getElementById("frame"),
     playpause = document.getElementById("playpause"),
     slider = document.getElementById("slider"),
     timedisplay = document.getElementById("timedisplay"),
+    rateSelect = document.getElementById("rateSelect"),
     currentTimings = document.getElementById("currenttimings");
 
 slider.max = totalDuration;
@@ -53,6 +54,14 @@ playpause.addEventListener("click", function() {
 slider.addEventListener("input", function() {
   var time = ~~slider.value;
   kinetophone.currentTime(time);
+});
+
+// When the playback rate changes, update the rate in Kinetophone,
+// and update our DOM node to play at the same rate.
+rateSelect.addEventListener("change", function() {
+  var playbackRate = parseFloat(this.value);
+  kinetophone.playbackRate(playbackRate);
+  if (currentAudio) currentAudio.audio.playbackRate = kinetophone.playbackRate();
 });
 
 // For the frames channel, we'll build an array of frame timings for
@@ -144,6 +153,7 @@ kinetophone.on("enter:audio", function(timing) {
 
   var offset = kinetophone.currentTime() - timing.start;
   currentAudio.audio.currentTime = offset / 1000;
+  currentAudio.audio.playbackRate = kinetophone.playbackRate();
   if (kinetophone.playing()) currentAudio.audio.play();
 });
 
