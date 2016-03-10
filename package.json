@@ -17,7 +17,7 @@
   "dependencies": {
     "eventemitter3": "^0.1.6",
     "interval-tree": "0.0.4",
-    "timex": "^1.0.3"
+    "timex": "^1.1.0"
   },
   "devDependencies": {
     "webpack": "^1.5.3"
