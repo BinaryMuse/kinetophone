@@ -158,6 +158,14 @@ module.exports = (function() {
     }
   };
 
+  Kinetophone.prototype.playbackRate = function(rate) {
+    if (rate === undefined) {
+      return this._timer.getRate();
+    } else {
+      return this._timer.setRate(rate);
+    }
+  };
+
   Kinetophone.prototype._resolveTimings = function(lastTime, currentTime) {
     Object.keys(this._channels).forEach(function(chan) {
       this._resolveTimingsForChannel(chan, lastTime, currentTime);

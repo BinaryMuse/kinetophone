@@ -99,6 +99,10 @@ Pauses the Kinetophone.
 
 Starts (or resumes) the Kinetophone.
 
+**`Kinetophone#playbackRate([rate])`**
+
+Gets (when given no arguments) or sets (when given a numeric argument) the Kinetophone's playback rate. `0.25` will play at quarter speed, while `3` will play three times as fast as normal.
+
 **`Kinetophone#currentTime([ms])`**
 
 Gets (when given no arguments) or sets (when given a numeric argument) the Kinetophone's current time in milliseconds.
@@ -271,4 +275,3 @@ Kinetophone is licensed under the [MIT license](LICENSE).
 > LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 > THE SOFTWARE.
-
