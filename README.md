@@ -208,6 +208,10 @@ Indicates the Kinetophone's playhead was seeked to a specific time using `curren
 
 Indicates the Kinetophone has stopped because it reached the end of its total duration.
 
+**`rateupdate(rate)`**
+
+Indicates the Kinetophone's playback rate has changed.
+
 ### Channels
 
 A channel is a description of a series of related timings. For example, a single Kinetophone instance might contain a channel containing clips of audio to play at certain times in the timeline and another channel containing images to display at other times. Each channel has a name and an array of timings; every channel must have a unique name per Kinetophone instance.
