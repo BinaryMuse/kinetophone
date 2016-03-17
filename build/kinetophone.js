@@ -218,7 +218,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (rate === undefined) {
 	      return this._timer.getRate();
 	    } else {
-	      return this._timer.setRate(rate);
+	      this._timer.setRate(rate);
+	      this.emit("rateupdate", rate);
 	    }
 	  };
 
